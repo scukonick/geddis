@@ -151,3 +151,42 @@ func TestStorageKeys(t *testing.T) {
 		t.Errorf("Want 2, got: %d", found)
 	}
 }
+
+func TestStorageGetByKey(t *testing.T) {
+	val := map[string]string{
+		"key1": "val1",
+		"key2": "val2",
+	}
+
+	key := "key"
+
+	store := NewGeddisStore(5)
+	store.SetMap(key, val, 0)
+
+	res, err := store.GetByKey(key, "key1")
+	if err != nil {
+		t.Errorf("Want nil, got: %v", err)
+	}
+
+	if res != val["key1"] {
+		t.Errorf("Want: %s, got: %s", val["key1"], res)
+	}
+}
+
+func TestStorageGetByIndex(t *testing.T) {
+	val := []string{"aaaa", "bbbb", "ccc"}
+
+	key := "key"
+
+	store := NewGeddisStore(5)
+	store.SetArr(key, val, 0)
+
+	res, err := store.GetByIndex(key, 1)
+	if err != nil {
+		t.Errorf("Want nil, got: %v", err)
+	}
+
+	if res != val[1] {
+		t.Errorf("Want: %s, got: %s", val[1], res)
+	}
+}

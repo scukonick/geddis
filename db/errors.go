@@ -11,4 +11,8 @@ var (
 	// get type which is not store by  the key
 	// or does operations on type which does not support them
 	ErrInvalidType = errors.New("invalid store type")
+
+	// ErrInvalidIndex is returned when index or key
+	// is not presented in the requested element
+	ErrInvalidIndex = errors.New("invalid index or key")
 )

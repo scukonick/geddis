@@ -251,6 +251,68 @@ func (s *GeddisStore) Keys(prefix string) []string {
 	return resp
 }
 
+// GetByIndex get element by index i from slice
+// by key 'key'. It returns ErrNotFound if such slice
+// does not exist, ErrInvalidType if element by this key
+// is not a slice and ErrInvalidIndex if element does not contain
+// sub-element defined by this index. It also returns ErrInvalidIndex
+// in case of i < 0.
+func (s *GeddisStore) GetByIndex(key string, i int) (string, error) {
+	if i < 0 {
+		return "", ErrInvalidIndex
+	}
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.cleanExpired()
+
+	elem, ok := s.m[key]
+	if !ok {
+		return "", ErrNotFound
+	}
+
+	elemSlice, ok := elem.([]string)
+	if !ok {
+		return "", ErrInvalidType
+	}
+
+	if len(elemSlice) < i+1 {
+		return "", ErrInvalidIndex
+	}
+
+	return elemSlice[i], nil
+}
+
+// GetByKey get element by key subKey from map
+// by key 'key'. It returns ErrNotFound if such map
+// does not exist, ErrInvalidType if element by this key
+// is not a map and ErrInvalidIndex if element does not contain
+// sub-element defined by this key.
+func (s *GeddisStore) GetByKey(key, subKey string) (string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.cleanExpired()
+
+	elem, ok := s.m[key]
+	if !ok {
+		return "", ErrNotFound
+	}
+
+	elemSlice, ok := elem.(map[string]string)
+	if !ok {
+		return "", ErrInvalidType
+	}
+
+	resp, ok := elemSlice[subKey]
+	if !ok {
+		return "", ErrInvalidIndex
+	}
+
+	return resp, nil
+}
+
 // Run starts inner processes of strings store
 // i.e. cleaning expired elements and storing data to disk.
 // It starts processes in separate goroutines and exits after it.
