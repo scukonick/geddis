@@ -6,39 +6,39 @@ import (
 	"time"
 )
 
-type stringTime struct {
-	str      string
+type keyTime struct {
+	key      string
 	expireAt time.Time
 }
 
-func newStringKey(key string, expireAt time.Time) stringTime {
-	return stringTime{
-		str:      key,
+func newKeyTime(key string, expireAt time.Time) keyTime {
+	return keyTime{
+		key:      key,
 		expireAt: expireAt,
 	}
 }
 
-type stringKeyHeap []stringTime
+type keyTimeHeap []keyTime
 
-func newStringKeyHeap(size int) stringKeyHeap {
-	return make([]stringTime, 0, size)
+func newKeyTimeHeap(size int) keyTimeHeap {
+	return make([]keyTime, 0, size)
 }
 
-func (h stringKeyHeap) Len() int {
+func (h keyTimeHeap) Len() int {
 	return len(h)
 }
-func (h stringKeyHeap) Less(i, j int) bool {
+func (h keyTimeHeap) Less(i, j int) bool {
 	return h[i].expireAt.Before(h[j].expireAt)
 }
-func (h stringKeyHeap) Swap(i, j int) {
+func (h keyTimeHeap) Swap(i, j int) {
 	h[i], h[j] = h[j], h[i]
 }
 
-func (h *stringKeyHeap) Push(x interface{}) {
-	*h = append(*h, x.(stringTime))
+func (h *keyTimeHeap) Push(x interface{}) {
+	*h = append(*h, x.(keyTime))
 }
 
-func (h *stringKeyHeap) Pop() interface{} {
+func (h *keyTimeHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
@@ -49,8 +49,8 @@ func (h *stringKeyHeap) Pop() interface{} {
 // stringsStore represents string-value storage
 // for storing strings
 type stringsStore struct {
-	m      map[string]string
-	h      stringKeyHeap
+	m      map[string]interface{}
+	h      keyTimeHeap
 	lock   sync.RWMutex
 	stopCh chan interface{}
 	wg     sync.WaitGroup
@@ -62,8 +62,8 @@ func newStringsStore(size int) *stringsStore {
 	}
 
 	return &stringsStore{
-		m:      make(map[string]string, size),
-		h:      newStringKeyHeap(size),
+		m:      make(map[string]interface{}, size),
+		h:      newKeyTimeHeap(size),
 		lock:   sync.RWMutex{},
 		stopCh: make(chan interface{}),
 		wg:     sync.WaitGroup{},
@@ -82,23 +82,26 @@ func (s *stringsStore) cleanExpired() {
 		}
 		if s.h[0].expireAt.Before(now) {
 			k := heap.Pop(&s.h)
-			delete(s.m, k.(stringTime).str)
+			delete(s.m, k.(keyTime).key)
 		}
 	}
 }
 
-func (s *stringsStore) set(key, value string, ttl time.Duration) {
+func (s *stringsStore) set(key string, value interface{}, ttl time.Duration) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.m[key] = value
 	if ttl != 0 {
 		expireAt := time.Now().Add(ttl)
-		s.h.Push(newStringKey(key, expireAt))
+		s.h.Push(newKeyTime(key, expireAt))
 	}
 }
 
-func (s *stringsStore) get(key string) (string, error) {
+// we could not use get for everything here as we need to copy values
+// for slices and maps to prevent racing
+// so we have to have different get's for each type
+func (s *stringsStore) getStr(key string) (string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -109,7 +112,58 @@ func (s *stringsStore) get(key string) (string, error) {
 		return "", ErrNotFound
 	}
 
-	return elem, nil
+	resp, ok := elem.(string)
+	if !ok {
+		return "", ErrInvalidType
+	}
+
+	return resp, nil
+}
+
+func (s *stringsStore) getArr(key string) ([]string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.cleanExpired()
+
+	elem, ok := s.m[key]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	elemSlice, ok := elem.([]string)
+	if !ok {
+		return nil, ErrInvalidType
+	}
+
+	resp := make([]string, len(elemSlice))
+	copy(resp, elemSlice)
+
+	return resp, nil
+}
+
+func (s *stringsStore) getMap(key string) (map[string]string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.cleanExpired()
+
+	elem, ok := s.m[key]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	elemMap, ok := elem.(map[string]string)
+	if !ok {
+		return nil, ErrInvalidType
+	}
+
+	resp := make(map[string]string, len(elemMap))
+	for i, val := range elemMap {
+		resp[i] = val
+	}
+
+	return resp, nil
 }
 
 func (s *stringsStore) del(key string) {
@@ -118,13 +172,8 @@ func (s *stringsStore) del(key string) {
 
 	delete(s.m, key)
 
-	// instead of ranging over all the heap
-	// we can store ttl also in the map
-	// but it will increase memory usage.
-	// so here we prefer some more CPU usage
-	// in order to save memory
 	for i, v := range s.h {
-		if v.str == key {
+		if v.key == key {
 			heap.Remove(&s.h, i)
 			break
 		}
@@ -132,7 +181,7 @@ func (s *stringsStore) del(key string) {
 }
 
 // runCleaner cleans expired elements each 5 seconds
-// to free memory when no one is calling 'get' method
+// in order to free memory when no one is calling 'get' method
 func (s *stringsStore) runCleaner() {
 	s.wg.Add(1)
 
@@ -152,4 +201,10 @@ func (s *stringsStore) runCleaner() {
 			}
 		}
 	}()
+}
+
+func (s *stringsStore) stop() {
+	s.stopCh <- true
+
+	s.wg.Wait()
 }
