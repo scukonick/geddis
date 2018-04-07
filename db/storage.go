@@ -47,9 +47,27 @@ func (h *keyTimeHeap) Pop() interface{} {
 	return x
 }
 
-// stringsStore represents string-value storage
-// for storing strings
-type stringsStore struct {
+func (h *keyTimeHeap) deleteKey(key string) {
+	var i int
+	var val keyTime
+	found := false
+	for i, val = range *h {
+		if val.key == key {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return
+	}
+
+	heap.Remove(h, i)
+}
+
+// GeddisStore is Key Value storage.
+// It can be used as embedded storage.
+type GeddisStore struct {
 	m      map[string]interface{}
 	h      keyTimeHeap
 	lock   sync.RWMutex
@@ -57,12 +75,15 @@ type stringsStore struct {
 	wg     sync.WaitGroup
 }
 
-func newStringsStore(size int) *stringsStore {
+// NewGeddisStore returns newly initialized GeddisStore.
+// It will allocate hash map enough to store 'size' elements.
+// But it's not maximum, it's set only to prevent memory allocations.
+func NewGeddisStore(size int) *GeddisStore {
 	if size < 0 {
 		size = 0
 	}
 
-	return &stringsStore{
+	return &GeddisStore{
 		m:      make(map[string]interface{}, size),
 		h:      newKeyTimeHeap(size),
 		lock:   sync.RWMutex{},
@@ -72,8 +93,8 @@ func newStringsStore(size int) *stringsStore {
 }
 
 // cleanExpired removes expired elements from heap.
-// It's not thread safe so should be wrapped with mutex lock
-func (s *stringsStore) cleanExpired() {
+// It's not thread-safe so should be wrapped with mutex lock
+func (s *GeddisStore) cleanExpired() {
 
 	now := time.Now()
 
@@ -88,21 +109,51 @@ func (s *stringsStore) cleanExpired() {
 	}
 }
 
-func (s *stringsStore) set(key string, value interface{}, ttl time.Duration) {
+// SetStr sets string value.
+// If ttl <= 0, ttl is not set.
+// If there is already an element with key = key, it
+// would be overwritten
+func (s *GeddisStore) SetStr(key, value string, ttl time.Duration) {
+	s.set(key, value, ttl)
+}
+
+// SetArr sets string value.
+// If ttl <= 0, ttl is not set.
+// If there is already an element with key = key, it
+// would be overwritten
+func (s *GeddisStore) SetArr(key string, value []string, ttl time.Duration) {
+	s.set(key, value, ttl)
+}
+
+// SetMap sets string value.
+// If ttl <= 0, ttl is not set.
+// If there is already an element with key = key, it
+// would be overwritten
+func (s *GeddisStore) SetMap(key string, value map[string]string, ttl time.Duration) {
+	s.set(key, value, ttl)
+}
+
+func (s *GeddisStore) set(key string, value interface{}, ttl time.Duration) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	if _, exists := s.m[key]; exists {
+		// cleaning heap from old TTL
+		s.h.deleteKey(key)
+	}
 
 	s.m[key] = value
 	if ttl != 0 {
 		expireAt := time.Now().Add(ttl)
-		s.h.Push(newKeyTime(key, expireAt))
+		heap.Push(&s.h, newKeyTime(key, expireAt))
 	}
 }
 
-// we could not use get for everything here as we need to copy values
-// for slices and maps to prevent racing
-// so we have to have different get's for each type
-func (s *stringsStore) getStr(key string) (string, error) {
+// GetStr returns string stored by key 'key'.
+// If an element with this key does not exist, it returns ErrNotFound error.
+// If by this key there is value of another type,
+// it returns ErrInvalidType.
+func (s *GeddisStore) GetStr(key string) (string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -121,7 +172,11 @@ func (s *stringsStore) getStr(key string) (string, error) {
 	return resp, nil
 }
 
-func (s *stringsStore) getArr(key string) ([]string, error) {
+// GetArr returns a slice of strings stored by key 'key'.
+// If an element with this key does not exist, it returns ErrNotFound error.
+// If by this key there is value of another type,
+// it returns ErrInvalidType.
+func (s *GeddisStore) GetArr(key string) ([]string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -143,7 +198,11 @@ func (s *stringsStore) getArr(key string) ([]string, error) {
 	return resp, nil
 }
 
-func (s *stringsStore) getMap(key string) (map[string]string, error) {
+// GetMap returns a map stored by key 'key'.
+// If an element with this key does not exist, it returns ErrNotFound error.
+// If by this key there is value of another type,
+// it returns ErrInvalidType.
+func (s *GeddisStore) GetMap(key string) (map[string]string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -167,23 +226,18 @@ func (s *stringsStore) getMap(key string) (map[string]string, error) {
 	return resp, nil
 }
 
-func (s *stringsStore) del(key string) {
+func (s *GeddisStore) del(key string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	delete(s.m, key)
 
-	for i, v := range s.h {
-		if v.key == key {
-			heap.Remove(&s.h, i)
-			break
-		}
-	}
+	s.h.deleteKey(key)
 }
 
 // Keys returns slice of keys which have prefix 'prefix'.
 // If prefix is an empty string, it returns all the keys
-func (s *stringsStore) Keys(prefix string) []string {
+func (s *GeddisStore) Keys(prefix string) []string {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -197,9 +251,16 @@ func (s *stringsStore) Keys(prefix string) []string {
 	return resp
 }
 
+// Run starts inner processes of strings store
+// i.e. cleaning expired elements and storing data to disk.
+// It starts processes in separate goroutines and exits after it.
+func (s *GeddisStore) Run() {
+	go s.runCleaner()
+}
+
 // runCleaner cleans expired elements each 5 seconds
 // in order to free memory when no one is calling 'get' method
-func (s *stringsStore) runCleaner() {
+func (s *GeddisStore) runCleaner() {
 	s.wg.Add(1)
 
 	go func() {
@@ -207,7 +268,6 @@ func (s *stringsStore) runCleaner() {
 		ticker := time.NewTicker(1 * time.Minute)
 
 		for {
-
 			select {
 			case <-ticker.C:
 				s.lock.Lock()
@@ -221,7 +281,8 @@ func (s *stringsStore) runCleaner() {
 	}()
 }
 
-func (s *stringsStore) stop() {
+// Stop stops all processes of store and waits for them to exit.
+func (s *GeddisStore) Stop() {
 	s.stopCh <- true
 
 	s.wg.Wait()

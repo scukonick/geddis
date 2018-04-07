@@ -9,9 +9,9 @@ func TestStringStoreSetAndGet(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 0)
-	res, err := store.getStr(key)
+	res, err := store.GetStr(key)
 	if err != nil {
 		t.Fatalf("want nil, got: %v", err)
 	}
@@ -25,9 +25,9 @@ func TestStringStoreSetAndGetSlice(t *testing.T) {
 	value := []string{"abc", "xyz"}
 	key := "zxc"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 0)
-	res, err := store.getArr(key)
+	res, err := store.GetArr(key)
 	if err != nil {
 		t.Fatalf("want nil, got: %v", err)
 	}
@@ -54,9 +54,9 @@ func TestStringStoreSetAndGetMap(t *testing.T) {
 
 	key := "zxc"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 0)
-	res, err := store.getMap(key)
+	res, err := store.GetMap(key)
 	if err != nil {
 		t.Fatalf("want nil, got: %v", err)
 	}
@@ -77,8 +77,8 @@ func TestStringStoreSetAndGetMap(t *testing.T) {
 
 func TestStringStoreGetNotExistingElement(t *testing.T) {
 
-	store := newStringsStore(5)
-	_, err := store.getStr("zxc")
+	store := NewGeddisStore(5)
+	_, err := store.GetStr("zxc")
 	if err != ErrNotFound {
 		t.Fatalf("want Element not found, got: %v", err)
 	}
@@ -89,11 +89,11 @@ func TestStringStoreSetAndDel(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 0)
 	store.del(key)
 
-	_, err := store.getStr(key)
+	_, err := store.GetStr(key)
 	if err != ErrNotFound {
 		t.Fatalf("want Element not found, got: %v", err)
 	}
@@ -103,12 +103,12 @@ func TestStringStoreCleanExpired(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 1*time.Microsecond)
 
 	time.Sleep(10 * time.Microsecond)
 
-	_, err := store.getStr(key)
+	_, err := store.GetStr(key)
 	if err != ErrNotFound {
 		t.Fatalf("want Element not found, got: %v", err)
 	}
@@ -117,10 +117,10 @@ func TestGetInvalidType(t *testing.T) {
 	value := "abc"
 	key := "xyz"
 
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 	store.set(key, value, 0)
 
-	_, err := store.getMap(key)
+	_, err := store.GetMap(key)
 	if err != ErrInvalidType {
 		t.Errorf("Want Invalid Type Error, got: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestGetInvalidType(t *testing.T) {
 
 func TestStorageKeys(t *testing.T) {
 	keys := []string{"aaaa", "aaabbbb", "ccccc"}
-	store := newStringsStore(5)
+	store := NewGeddisStore(5)
 
 	for _, k := range keys {
 		store.set(k, "123", 0)
