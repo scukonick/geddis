@@ -125,3 +125,29 @@ func TestGetInvalidType(t *testing.T) {
 		t.Errorf("Want Invalid Type Error, got: %v", err)
 	}
 }
+
+func TestStorageKeys(t *testing.T) {
+	keys := []string{"aaaa", "aaabbbb", "ccccc"}
+	store := newStringsStore(5)
+
+	for _, k := range keys {
+		store.set(k, "123", 0)
+	}
+
+	storedKeys := store.Keys("aaa")
+	if len(storedKeys) != 2 {
+		t.Fatalf("expected 2, got: %d", len(storedKeys))
+	}
+
+	found := 0
+	for _, k := range storedKeys {
+		for _, j := range keys {
+			if k == j {
+				found++
+			}
+		}
+	}
+	if found != 2 {
+		t.Errorf("Want 2, got: %d", found)
+	}
+}

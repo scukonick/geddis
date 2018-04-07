@@ -2,6 +2,7 @@ package db
 
 import (
 	"container/heap"
+	"strings"
 	"sync"
 	"time"
 )
@@ -180,6 +181,22 @@ func (s *stringsStore) del(key string) {
 	}
 }
 
+// Keys returns slice of keys which have prefix 'prefix'.
+// If prefix is an empty string, it returns all the keys
+func (s *stringsStore) Keys(prefix string) []string {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	resp := make([]string, 0, len(s.m))
+	for k := range s.m {
+		if strings.HasPrefix(k, prefix) {
+			resp = append(resp, k)
+		}
+	}
+
+	return resp
+}
+
 // runCleaner cleans expired elements each 5 seconds
 // in order to free memory when no one is calling 'get' method
 func (s *stringsStore) runCleaner() {
@@ -187,16 +204,17 @@ func (s *stringsStore) runCleaner() {
 
 	go func() {
 		defer s.wg.Done()
+		ticker := time.NewTicker(1 * time.Minute)
 
 		for {
-			tick := time.NewTimer(1 * time.Minute)
+
 			select {
-			case <-tick.C:
+			case <-ticker.C:
 				s.lock.Lock()
 				s.cleanExpired()
 				s.lock.Unlock()
 			case <-s.stopCh:
-				tick.Stop()
+				ticker.Stop()
 				return
 			}
 		}
