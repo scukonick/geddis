@@ -6,7 +6,7 @@ import (
 
 	"github.com/scukonick/geddis/config"
 	"github.com/scukonick/geddis/db"
-	sw "github.com/scukonick/geddis/serveryyy/go"
+	sw "github.com/scukonick/geddis/server_api/go"
 	"github.com/spf13/viper"
 )
 
