@@ -28,7 +28,7 @@ paths:
       description: "Returns a string value defined by specified key"
       operationId: "getString"
       produces:
-      - "application/json"
+      - "application/text"
       parameters:
       - name: "key"
         in: "path"
@@ -121,7 +121,7 @@ paths:
       description: "Returns an array value defined by specified key"
       operationId: "getArrByIndex"
       produces:
-      - "application/json"
+      - "application/text"
       parameters:
       - name: "key"
         in: "path"
@@ -177,8 +177,6 @@ paths:
       responses:
         200:
           description: "successful operation"
-          schema:
-            $ref: "#/definitions/SetMapReq"
       parameters:
       - name: "key"
         in: "path"
@@ -187,10 +185,10 @@ paths:
         type: "string"
       - name: "body"
         in: "body"
-        description: "Value and ttl of the string element"
+        description: "Value and ttl of the map element"
         required: true
         schema:
-          $ref: "#/definitions/SetArrayReq"
+          $ref: "#/definitions/SetMapReq"
   /maps/{key}/{subkey}:
     get:
       tags: ["maps"]
@@ -198,7 +196,7 @@ paths:
       description: "Returns a value of map element defined by sub-key defined by specified key"
       operationId: "getMapBySubKey"
       produces:
-      - "application/json"
+      - "application/text"
       parameters:
       - name: "key"
         in: "path"
@@ -237,6 +235,25 @@ paths:
         description: "key of value to set"
         required: true
         type: "string"
+  /keys/{key}:
+    delete:
+      tags: ["common"]
+      summary: "returns keys starting with 'key'"
+      description: "Returns array of keys matching 'key*'. If key == '*' it returns all the keys"
+      operationId: "getKeys"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Array"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "prefix of keys to return"
+        required: true
+        type: "string"
 definitions:
   StringValue:
     type: string
@@ -271,28 +288,16 @@ definitions:
 
   MapValue:
     type: object
-    properties:
-      values:
-        type: array
-        items:
-          type: object
-          properties:
-            key:
-              type: "string"
-            value:
-              type: "string"
+    additionalProperties:
+      type: "string"
+
   SetMapReq:
     type: object
     properties:
-      values:
-        type: array
-        items:
-          type: object
-          properties:
-            key:
-              type: "string"
-            value:
-              type: "string"
+      value:
+        type: object
+        additionalProperties:
+          type: "string"
       ttl:
         type: integer
         format: "int64"

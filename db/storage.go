@@ -78,7 +78,8 @@ type GeddisStore struct {
 // NewGeddisStore returns newly initialized GeddisStore.
 // It will allocate hash map enough to store 'size' elements.
 // But it's not maximum, it's set only to prevent memory allocations.
-func NewGeddisStore(size int) *GeddisStore {
+func NewGeddisStore(cfg *StoreConfig) *GeddisStore {
+	size := cfg.Size
 	if size < 0 {
 		size = 0
 	}
