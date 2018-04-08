@@ -91,7 +91,7 @@ func TestStringStoreSetAndDel(t *testing.T) {
 
 	store := NewGeddisStore(5)
 	store.set(key, value, 0)
-	store.del(key)
+	store.Del(key)
 
 	_, err := store.GetStr(key)
 	if err != ErrNotFound {
