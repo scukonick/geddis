@@ -102,10 +102,11 @@ func (s *GeddisStore) cleanExpired() {
 		if len(s.h) == 0 {
 			break
 		}
-		if s.h[0].expireAt.Before(now) {
-			k := heap.Pop(&s.h)
-			delete(s.m, k.(keyTime).key)
+		if s.h[0].expireAt.After(now) {
+			break
 		}
+		k := heap.Pop(&s.h)
+		delete(s.m, k.(keyTime).key)
 	}
 }
 
