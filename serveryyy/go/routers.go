@@ -8,19 +8,20 @@ import (
 	"github.com/scukonick/geddis/db"
 )
 
-type Route struct {
+type route struct {
 	Name        string
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
 }
 
-type Routes []Route
+type routes []route
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World!")
 }
 
+// ServerAPI represents HTTP REST API for geddis
 type ServerAPI struct {
 	store   *db.GeddisStore
 	strings *stringsAPI
@@ -29,56 +30,57 @@ type ServerAPI struct {
 	common  *commonAPI
 }
 
+// NewServerAPI returns newly initialized ServerAPI instance
 func NewServerAPI(store *db.GeddisStore) *ServerAPI {
 	return &ServerAPI{
 		store:   store,
-		strings: NewStringAPI(store),
-		common:  NewCommonAPI(store),
+		strings: newStringAPI(store),
+		common:  newCommonAPI(store),
 		arrays:  newArraysAPI(store),
 		maps:    newmapsAPI(store),
 	}
 }
 
-func (api *ServerAPI) getRoutes() Routes {
-	return Routes{
-		Route{
-			"Index",
+func (api *ServerAPI) getRoutes() routes {
+	return routes{
+		route{
+			"index",
 			"GET",
 			"/",
-			Index,
+			index,
 		},
 
 		// Strings
-		Route{
-			"GetStringByKey",
+		route{
+			"getStringByKey",
 			"GET",
 			"/strings/{key}",
-			api.strings.GetStringByKey,
+			api.strings.getString,
 		},
 
-		Route{
+		route{
 			"StringsKeyPost",
 			"POST",
 			"/strings/{key}",
-			api.strings.StringsKeyPost,
+			api.strings.post,
 		},
 
 		// Arrays
-		Route{
+		route{
 			"GetArrayByKey",
 			"GET",
 			"/arrays/{key}",
 			api.arrays.GetByKey,
 		},
 
-		Route{
+		route{
 			"SetArray",
 			"POST",
 			"/arrays/{key}",
 			api.arrays.Post,
 		},
 
-		Route{
+		route{
 			"GetArrayByKeyIndex",
 			"GET",
 			"/arrays/{key}/{index}",
@@ -86,21 +88,21 @@ func (api *ServerAPI) getRoutes() Routes {
 		},
 
 		// Maps
-		Route{
+		route{
 			"GetMap",
 			"GET",
 			"/maps/{key}",
 			api.maps.GetByKey,
 		},
 
-		Route{
+		route{
 			"SetMap",
 			"POST",
 			"/maps/{key}",
 			api.maps.Post,
 		},
 
-		Route{
+		route{
 			"GetMapByKeySubkey",
 			"GET",
 			"/maps/{key}/{subkey}",
@@ -108,21 +110,29 @@ func (api *ServerAPI) getRoutes() Routes {
 		},
 
 		// Common
-		Route{
-			"DeleteValue",
+		route{
+			"deleteValue",
 			"DELETE",
 			"/common/{key}",
-			api.common.DeleteValue,
+			api.common.deleteValue,
+		},
+
+		route{
+			"GetKeys",
+			"GET",
+			"/keys/{key}",
+			api.common.keys,
 		},
 	}
 }
 
+// GetRouter returns router from ServerAPI, so the client
+// is able to call listen and stop as needed
 func (api *ServerAPI) GetRouter() *mux.Router {
 	routes := api.getRoutes()
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
-		var handler http.Handler
-		handler = route.HandlerFunc
+		var handler http.Handler = route.HandlerFunc
 		handler = Logger(handler, route.Name)
 
 		router.

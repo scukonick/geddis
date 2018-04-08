@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"log"
+
 	"github.com/gorilla/mux"
 	"github.com/scukonick/geddis/db"
 	"github.com/scukonick/geddis/serverxxx"
@@ -48,9 +50,16 @@ func (s *arraysAPI) GetByKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	js, err := json.Marshal(value)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Printf("Failed to sent result: %v", err)
+	}
 }
 
 func (s *arraysAPI) GetByKeyIndex(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +99,10 @@ func (s *arraysAPI) GetByKeyIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(value))
+	_, err = w.Write([]byte(value))
+	if err != nil {
+		log.Printf("Failed to sent result: %v", err)
+	}
 }
 
 func (s *arraysAPI) Post(w http.ResponseWriter, r *http.Request) {

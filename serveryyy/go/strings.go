@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"log"
+
 	"github.com/gorilla/mux"
 	"github.com/scukonick/geddis/db"
 	"github.com/scukonick/geddis/serverxxx"
@@ -15,13 +17,13 @@ type stringsAPI struct {
 	store *db.GeddisStore
 }
 
-func NewStringAPI(s *db.GeddisStore) *stringsAPI {
+func newStringAPI(s *db.GeddisStore) *stringsAPI {
 	return &stringsAPI{
 		store: s,
 	}
 }
 
-func (s *stringsAPI) GetStringByKey(w http.ResponseWriter, r *http.Request) {
+func (s *stringsAPI) getString(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
 
@@ -47,10 +49,13 @@ func (s *stringsAPI) GetStringByKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(value))
+	_, err = w.Write([]byte(value))
+	if err != nil {
+		log.Printf("Failed to sent result: %v", err)
+	}
 }
 
-func (s *stringsAPI) StringsKeyPost(w http.ResponseWriter, r *http.Request) {
+func (s *stringsAPI) post(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
