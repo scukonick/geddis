@@ -13,6 +13,12 @@ schemes:
 tags:
 - name: "strings"
   description: "Operations with string values"
+- name: "arrays"
+  description: "Operations with array values"
+- name: "maps"
+  description: "Operations with map values"
+- name: "common"
+  description: "Operations for all types of values"
 
 paths:
   /strings/{key}:
@@ -20,9 +26,8 @@ paths:
       tags: ["strings"]
       summary: "Get string value by key"
       description: "Returns a string value defined by specified key"
-      operationId: "getStringByKey"
+      operationId: "getString"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "key"
@@ -44,14 +49,12 @@ paths:
       summary: "Set string value defined by key"
       description: "Sets string value defined by key. If TTL is omitted, \
       ttl of this value would not be set"
+      operationId: "setString"
       produces:
-      - "application/xml"
       - "application/json"
       responses:
         200:
           description: "successful operation"
-          schema:
-            $ref: "#/definitions/SetStringValueReq"
       parameters:
       - name: "key"
         in: "path"
@@ -64,6 +67,176 @@ paths:
         required: true
         schema:
           $ref: "#/definitions/SetStringValueReq"
+
+  /arrays/{key}:
+    get:
+      tags: ["arrays"]
+      summary: "Get array value by key"
+      description: "Returns an array value defined by specified key"
+      operationId: "getArray"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to return"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Array"
+        400:
+          description: "Invalid type defined by this key"
+        404:
+          description: "Array by this key is not found"
+    post:
+      tags: ["arrays"]
+      summary: "Set array value defined by key"
+      description: "Sets string value defined by key. If TTL is omitted, \
+      ttl of this value would not be set"
+      operationId: "setArray"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to set"
+        required: true
+        type: "string"
+      - name: "body"
+        in: "body"
+        description: "Value and ttl of the string element"
+        required: true
+        schema:
+          $ref: "#/definitions/SetArrayReq"
+  /arrays/{key}/{index}:
+    get:
+      tags: ["arrays"]
+      summary: "Get string value by key"
+      description: "Returns an array value defined by specified key"
+      operationId: "getArrByIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to return"
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "index of element in array to return"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/StringValue"
+        400:
+          description: "Invalid type defined by this key"
+        404:
+          description: "Array by this key or element by index is not found"
+
+  /maps/{key}:
+    get:
+      tags: ["maps"]
+      summary: "Get map value by key"
+      description: "Returns an map value defined by specified key"
+      operationId: "getMap"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to return"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MapValue"
+        400:
+          description: "Invalid type defined by this key"
+        404:
+          description: "Array by this key is not found"
+    post:
+      tags: ["maps"]
+      summary: "Set map value defined by key"
+      description: "Sets map value defined by key. If TTL is omitted, \
+      ttl of this value would not be set"
+      operationId: "setMap"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SetMapReq"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to set"
+        required: true
+        type: "string"
+      - name: "body"
+        in: "body"
+        description: "Value and ttl of the string element"
+        required: true
+        schema:
+          $ref: "#/definitions/SetArrayReq"
+  /maps/{key}/{subkey}:
+    get:
+      tags: ["maps"]
+      summary: "Get value of element in map defined by sub-key"
+      description: "Returns a value of map element defined by sub-key defined by specified key"
+      operationId: "getMapBySubKey"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to return"
+        required: true
+        type: "string"
+      - name: "subkey"
+        in: "path"
+        description: "key of the element inside the map"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/StringValue"
+        400:
+          description: "Invalid type defined by this key"
+        404:
+          description: "Map by this key or map element by sub key is not found"
+
+  /delete/{key}:
+    delete:
+      tags: ["common"]
+      summary: "Deletes value defined by key"
+      description: "Deletes value of any type defined by key"
+      operationId: "delete"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "key of value to set"
+        required: true
+        type: "string"
 definitions:
   StringValue:
     type: string
@@ -72,6 +245,54 @@ definitions:
     properties:
       value:
         type: "string"
+      ttl:
+        type: integer
+        format: "int64"
+        description: "TTL of element in seconds. If <= 0 it would be stored forever"
+
+  Array:
+    type: object
+    properties:
+      values:
+        type: "array"
+        items:
+          type: "string"
+  SetArrayReq:
+    type: object
+    properties:
+      values:
+        type: "array"
+        items:
+          type: "string"
+      ttl:
+        type: integer
+        format: "int64"
+        description: "TTL of element in seconds. If <= 0 it would be stored forever"
+
+  MapValue:
+    type: object
+    properties:
+      values:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: "string"
+            value:
+              type: "string"
+  SetMapReq:
+    type: object
+    properties:
+      values:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: "string"
+            value:
+              type: "string"
       ttl:
         type: integer
         format: "int64"
