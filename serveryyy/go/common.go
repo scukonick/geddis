@@ -1,11 +1,9 @@
 package geddis
 
 import (
-	"net/http"
-
 	"encoding/json"
-
 	"log"
+	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/scukonick/geddis/db"
