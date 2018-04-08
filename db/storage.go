@@ -227,7 +227,8 @@ func (s *GeddisStore) GetMap(key string) (map[string]string, error) {
 	return resp, nil
 }
 
-func (s *GeddisStore) del(key string) {
+// Del deletes element by key
+func (s *GeddisStore) Del(key string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -241,6 +242,8 @@ func (s *GeddisStore) del(key string) {
 func (s *GeddisStore) Keys(prefix string) []string {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	s.cleanExpired()
 
 	resp := make([]string, 0, len(s.m))
 	for k := range s.m {
