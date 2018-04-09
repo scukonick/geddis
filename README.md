@@ -9,7 +9,12 @@ image:
 ```bash
 docker run -d -p 8080:8080 scukonick/geddis
 ```
-Geddis would be accessible on http://127.0.0.1:8080
+Geddis would be accessible on http://127.0.0.1:8080:
+```bash
+curl -X POST "http://127.0.0.1:8080/strings/jack" -d '{ "value": "It works!", "ttl": 100}'
+curl "http://127.0.0.1:8080/strings/jack"
+It works!
+```
 
 #### Build and run ####
 Another way is to check out repo and build geddis locally.
@@ -25,10 +30,12 @@ cd app
 Where GOPATH is your GOPATH, usually `~/go`.
 
 ### API ###
+
+#### Swagger ####
 Geddis has REST API done with help of swagger.
 So, there are at least two ways to look it up.
 
-First - take a look at swagger.yaml in the repository 
+First - take a look at swagg    er.yaml in the repository 
 with your favourite text editor.
 
 Second - open https://editor.swagger.io/, and there:
@@ -37,3 +44,5 @@ File -> Import URL and paste there the next URL:
 https://raw.githubusercontent.com/scukonick/geddis/master/swagger.yaml
 
 Swagger would build API documentation and even browser GUI.
+
+#### Curl ####
