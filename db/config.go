@@ -1,5 +1,8 @@
 package db
 
+// StoreConfig represents configuration for storage
 type StoreConfig struct {
-	Size int
+	Size          int
+	WorkDir       string
+	StoreInterval int
 }

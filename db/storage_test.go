@@ -9,7 +9,7 @@ func TestStringStoreSetAndGet(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 0)
 	res, err := store.GetStr(key)
 	if err != nil {
@@ -25,7 +25,7 @@ func TestStringStoreSetAndGetSlice(t *testing.T) {
 	value := []string{"abc", "xyz"}
 	key := "zxc"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 0)
 	res, err := store.GetArr(key)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestStringStoreSetAndGetMap(t *testing.T) {
 
 	key := "zxc"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 0)
 	res, err := store.GetMap(key)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestStringStoreSetAndGetMap(t *testing.T) {
 
 func TestStringStoreGetNotExistingElement(t *testing.T) {
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	_, err := store.GetStr("zxc")
 	if err != ErrNotFound {
 		t.Fatalf("want Element not found, got: %v", err)
@@ -89,7 +89,7 @@ func TestStringStoreSetAndDel(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 0)
 	store.Del(key)
 
@@ -103,7 +103,7 @@ func TestStringStoreCleanExpired(t *testing.T) {
 	value := "abcde"
 	key := "zxc"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 1*time.Microsecond)
 
 	time.Sleep(10 * time.Microsecond)
@@ -117,7 +117,7 @@ func TestGetInvalidType(t *testing.T) {
 	value := "abc"
 	key := "xyz"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.set(key, value, 0)
 
 	_, err := store.GetMap(key)
@@ -128,7 +128,7 @@ func TestGetInvalidType(t *testing.T) {
 
 func TestStorageKeys(t *testing.T) {
 	keys := []string{"aaaa", "aaabbbb", "ccccc"}
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 
 	for _, k := range keys {
 		store.set(k, "123", 0)
@@ -160,7 +160,7 @@ func TestStorageGetByKey(t *testing.T) {
 
 	key := "key"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.SetMap(key, val, 0)
 
 	res, err := store.GetByKey(key, "key1")
@@ -178,7 +178,7 @@ func TestStorageGetByIndex(t *testing.T) {
 
 	key := "key"
 
-	store := NewGeddisStore(5)
+	store := NewGeddisStore(&StoreConfig{})
 	store.SetArr(key, val, 0)
 
 	res, err := store.GetByIndex(key, 1)

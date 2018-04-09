@@ -68,11 +68,13 @@ func (h *keyTimeHeap) deleteKey(key string) {
 // GeddisStore is Key Value storage.
 // It can be used as embedded storage.
 type GeddisStore struct {
-	m      map[string]interface{}
-	h      keyTimeHeap
-	lock   sync.RWMutex
-	stopCh chan interface{}
-	wg     sync.WaitGroup
+	m             map[string]interface{}
+	h             keyTimeHeap
+	lock          sync.RWMutex
+	stopCh        chan interface{}
+	wg            sync.WaitGroup
+	workDir       string
+	storeInterval time.Duration
 }
 
 // NewGeddisStore returns newly initialized GeddisStore.
@@ -84,12 +86,16 @@ func NewGeddisStore(cfg *StoreConfig) *GeddisStore {
 		size = 0
 	}
 
+	storeInterval := time.Duration(cfg.StoreInterval) * time.Second
+
 	return &GeddisStore{
-		m:      make(map[string]interface{}, size),
-		h:      newKeyTimeHeap(size),
-		lock:   sync.RWMutex{},
-		stopCh: make(chan interface{}),
-		wg:     sync.WaitGroup{},
+		m:             make(map[string]interface{}, size),
+		h:             newKeyTimeHeap(size),
+		lock:          sync.RWMutex{},
+		stopCh:        make(chan interface{}),
+		wg:            sync.WaitGroup{},
+		workDir:       cfg.WorkDir,
+		storeInterval: storeInterval,
 	}
 }
 
@@ -322,7 +328,9 @@ func (s *GeddisStore) GetByKey(key, subKey string) (string, error) {
 // i.e. cleaning expired elements and storing data to disk.
 // It starts processes in separate goroutines and exits after it.
 func (s *GeddisStore) Run() {
-	go s.runCleaner()
+	s.loadFromDisk()
+	s.runCleaner()
+	s.runFileStore()
 }
 
 // runCleaner cleans expired elements each 5 seconds

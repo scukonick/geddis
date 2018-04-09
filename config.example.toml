@@ -1,5 +1,7 @@
 [Store]
 Size = 10
+WorkDir = "."
+StoreInterval = 30
 
 [ServerAPI]
 ListenAddr = ":8080"
