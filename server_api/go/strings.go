@@ -48,11 +48,21 @@ func (s *stringsAPI) getString(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := &swagger.StringValue{
+		Value: value,
+	}
+	js, err := json.Marshal(data)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(value))
+	_, err = w.Write(js)
 	if err != nil {
 		log.Printf("Failed to sent result: %v", err)
 	}
+
 }
 
 func (s *stringsAPI) post(w http.ResponseWriter, r *http.Request) {
