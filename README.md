@@ -178,3 +178,5 @@ Returns all the keys starting with peo:
 ./cli-client common keys --url "http://127.0.0.1:8080" --key "peo" 
 ```
 
+To get all existing keys pass "\*" in the key parameter.
+(yep, it conflicts with key "\*" but it's the easiest way to implement it.
