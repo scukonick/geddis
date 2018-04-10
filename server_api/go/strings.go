@@ -3,14 +3,13 @@ package geddis
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
-	"log"
-
 	"github.com/gorilla/mux"
+	"github.com/scukonick/geddis/cli/lib"
 	"github.com/scukonick/geddis/db"
-	"github.com/scukonick/geddis/serverxxx"
 )
 
 type stringsAPI struct {

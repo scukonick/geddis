@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/scukonick/geddis/cli/lib"
 	"github.com/scukonick/geddis/db"
-	"github.com/scukonick/geddis/serverxxx"
 )
 
 type arraysAPI struct {
