@@ -1,6 +1,6 @@
 [Store]
 Size = 10
-WorkDir = "."
+WorkDir = "/data"
 StoreInterval = 30
 
 [ServerAPI]
