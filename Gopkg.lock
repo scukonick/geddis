@@ -80,6 +80,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+  version = "v1.20.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["idna","publicsuffix"]
@@ -106,6 +112,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d5503c8c5b4bd630766b85115ae95516cb3d4bc0af8d01ea7c4491093b3e2354"
+  inputs-digest = "e4e2315d1f25511b4d4cb2a84fd112dae12f1b766d84414d2ec9d611f92036c3"
   solver-name = "gps-cdcl"
   solver-version = 1

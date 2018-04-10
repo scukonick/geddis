@@ -207,7 +207,7 @@ paths:
         in: "path"
         description: "key of the element inside the map"
         required: true
-        type: "integer"
+        type: "string"
       responses:
         200:
           description: "successful operation"
@@ -256,7 +256,10 @@ paths:
         type: "string"
 definitions:
   StringValue:
-    type: string
+    type: object
+    properties:
+      value:
+        type: "string"
   SetStringValueReq:
     type: object
     properties:
@@ -288,8 +291,11 @@ definitions:
 
   MapValue:
     type: object
-    additionalProperties:
-      type: "string"
+    properties:
+      value:
+        type: object
+        additionalProperties:
+          type: "string"
 
   SetMapReq:
     type: object

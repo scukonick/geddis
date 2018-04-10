@@ -48,7 +48,11 @@ func (s *mapsAPI) GetByKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(value)
+	data := &swagger.MapValue{
+		Value: value,
+	}
+
+	js, err := json.Marshal(data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

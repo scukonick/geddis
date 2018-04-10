@@ -48,7 +48,11 @@ func (s *arraysAPI) GetByKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(value)
+	data := &swagger.Array{
+		Values: value,
+	}
+
+	js, err := json.Marshal(data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
