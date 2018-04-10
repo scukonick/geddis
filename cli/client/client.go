@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/scukonick/geddis/serverxxx"
+	"github.com/scukonick/geddis/cli/lib"
 )
 
 // Client represents CLI client for geddis
