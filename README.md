@@ -88,7 +88,7 @@ curl "http://127.0.0.1:8080/arrays/abc/2"
 ##### Deleting #####
 Deletes element by key 'abc'
 ```bash
-curl -XDELETE "http://127.0.0.1:8080/common/abc"
+curl -XDELETE "http://127.0.0.1:8080/delete/abc"
 ```
 
 ##### Getting existing keys #####
@@ -99,7 +99,11 @@ curl "http://127.0.0.1:8080/keys/j"
 
 
 ### Configuration ###
-Self explained example of config.toml
+For now configuration file should be located in 
+the same directory from which application is started.
+
+Self explained example of config.toml.
+ 
 ```toml
 [Store]
 Size = 10  # approximate size of database, only for optimization 
@@ -109,3 +113,65 @@ WorkDir = "/tmp"  # where to store database
 [ServerAPI]
 ListenAddr = ":8080"  # Listen Addr in form ":9090" or "127.0.0.1:8080"
 ```
+
+### Command-line client ###
+
+#### build ####
+To build command line client run:
+```bash
+make client
+```
+
+#### requests with client ####
+Here are examples of requests:
+
+##### Strings #####
+Setting value:
+```bash
+./cli-client strings set --url "http://127.0.0.1:8080" --key "a"  --value "b" --ttl 50
+```
+Getting value:
+```bash
+./cli-client strings get --url "http://127.0.0.1:8080" --key "a"
+```
+
+##### Maps #####
+Setting value:
+```bash
+./cli-client maps set --url "http://127.0.0.1:8080" --key "people"  --map '{"first": "Jack", "second": "John"}' --ttl 100
+```
+Getting value:
+```bash
+./cli-client maps get --url "http://127.0.0.1:8080" --key "people"
+```
+Getting element of value by subkey:
+```bash
+./cli-client maps getSubKey --url "http://127.0.0.1:8080" --key "people"  --subkey "first"
+```
+
+##### Arrays #####
+Setting value:
+```bash
+./cli-client arrays set --url "http://127.0.0.1:8080" --key "fruits"  --value "apple" --value "orange" --ttl 100
+```
+Getting value:
+```bash
+./cli-client arrays get --url "http://127.0.0.1:8080" --key "fruits"
+```
+Getting element of value by index:
+```bash
+./cli-client arrays getIndex --url "http://127.0.0.1:8080" --key "fruits"  --index 1
+```
+
+##### Deleting #####
+Deletes element by key 'abc'
+```bash
+./cli-client arrays getIndex --url "http://127.0.0.1:8080" --key "fruits"  --index 1
+```
+
+##### Getting existing keys #####
+Returns all the keys starting with peo:
+```bash 
+./cli-client common keys --url "http://127.0.0.1:8080" --key "peo" 
+```
+
