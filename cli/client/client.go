@@ -116,3 +116,25 @@ func (c *Client) GetMapSubKey(key, subKey string) {
 
 	fmt.Println(val.Value)
 }
+
+// Delete deletes value identified by key
+func (c *Client) Delete(key string) {
+	_, err := c.commonAPI.Delete(key)
+	if err != nil {
+		log.Printf("failed to delete value: %v", err)
+		return
+	}
+
+}
+
+// Keys prints keys starting with submask
+func (c *Client) Keys(subMask string) {
+	v, _, err := c.commonAPI.GetKeys(subMask)
+	if err != nil {
+		log.Printf("failed to get keys: %v", err)
+		return
+	}
+
+	fmt.Println(v.Values)
+
+}

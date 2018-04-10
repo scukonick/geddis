@@ -114,6 +114,29 @@ func cliGetMapSubKey(c *cli.Context) error {
 	return nil
 }
 
+func cliDelete(c *cli.Context) error {
+	url := c.String("url")
+	client := geddiclient.NewClient(url)
+
+	log.Println("deleting")
+	key := c.String("key")
+
+	client.Delete(key)
+
+	return nil
+}
+
+func cliKeys(c *cli.Context) error {
+	url := c.String("url")
+	client := geddiclient.NewClient(url)
+
+	key := c.String("key")
+
+	client.Keys(key)
+
+	return nil
+}
+
 func main() {
 	app := cli.NewApp()
 
@@ -233,6 +256,24 @@ func main() {
 					Usage:  "Get value of element 'subkey' from the map identified by key",
 					Flags:  append(app.Flags, keyFlag, subKeyFlag),
 					Action: cliGetMapSubKey,
+				},
+			},
+		},
+		{
+			Name:  "common",
+			Usage: "other commands",
+			Subcommands: []cli.Command{
+				{
+					Name:   "delete",
+					Usage:  "Delete value by key",
+					Flags:  append(app.Flags, keyFlag),
+					Action: cliDelete,
+				},
+				{
+					Name:   "keys",
+					Usage:  "Return keys corresponding to provided submask",
+					Flags:  append(app.Flags, keyFlag),
+					Action: cliKeys,
 				},
 			},
 		},

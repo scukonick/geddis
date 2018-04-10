@@ -113,7 +113,7 @@ func (api *ServerAPI) getRoutes() routes {
 		route{
 			"deleteValue",
 			"DELETE",
-			"/common/{key}",
+			"/delete/{key}",
 			api.common.deleteValue,
 		},
 

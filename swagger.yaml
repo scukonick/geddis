@@ -236,7 +236,7 @@ paths:
         required: true
         type: "string"
   /keys/{key}:
-    delete:
+    get:
       tags: ["common"]
       summary: "returns keys starting with 'key'"
       description: "Returns array of keys matching 'key*'. If key == '*' it returns all the keys"

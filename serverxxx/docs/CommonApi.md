@@ -5,7 +5,7 @@ All URIs are relative to *http://127.0.0.1:8080*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**Delete**](CommonApi.md#Delete) | **Delete** /delete/{key} | Deletes value defined by key
-[**GetKeys**](CommonApi.md#GetKeys) | **Delete** /keys/{key} | returns keys starting with &#39;key&#39;
+[**GetKeys**](CommonApi.md#GetKeys) | **Get** /keys/{key} | returns keys starting with &#39;key&#39;
 
 
 # **Delete**

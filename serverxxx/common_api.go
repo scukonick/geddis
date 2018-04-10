@@ -112,7 +112,7 @@ func (a CommonApi) Delete(key string) (*APIResponse, error) {
  */
 func (a CommonApi) GetKeys(key string) (*Array, *APIResponse, error) {
 
-	var httpMethod = "Delete"
+	var httpMethod = "Get"
 	// create path and map variables
 	path := a.Configuration.BasePath + "/keys/{key}"
 	path = strings.Replace(path, "{"+"key"+"}", fmt.Sprintf("%v", key), -1)
