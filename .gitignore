@@ -1,2 +1,5 @@
 config.toml
 .idea
+geddis
+cli-client
+geddis.db

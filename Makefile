@@ -9,3 +9,6 @@ run-local:
 docker:
 	go build -o geddis main.go
 	docker build -t scukonick/geddis .
+
+client:
+	cd cli && go build -o ../cli-client main.go
