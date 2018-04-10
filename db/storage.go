@@ -19,6 +19,9 @@ func newKeyTime(key string, expireAt time.Time) keyTime {
 	}
 }
 
+// TODO - benchmark and possibly replace
+// with something more fast, maybe linked list.
+// Because using of slice would be slow on big amounts of keys
 type keyTimeHeap []keyTime
 
 func newKeyTimeHeap(size int) keyTimeHeap {
