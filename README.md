@@ -33,7 +33,7 @@ Where GOPATH is your GOPATH, usually `~/go`.
 
 #### Swagger ####
 Geddis has REST API done with help of swagger.
-So, there are at least two ways to look it up.
+So, there are at least three ways to look it up.
 
 First - take a look at swagg    er.yaml in the repository 
 with your favourite text editor.
@@ -44,6 +44,9 @@ File -> Import URL and paste there the next URL:
 https://raw.githubusercontent.com/scukonick/geddis/master/swagger.yaml
 
 Swagger would build API documentation and even browser GUI.
+
+Third, auto generated api documentation is located here:
+https://github.com/scukonick/geddis/tree/master/cli/lib
 
 #### Curl ####
 Here are examples of curl requests to geddis
