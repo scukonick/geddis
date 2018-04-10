@@ -356,9 +356,10 @@ func (s *GeddisStore) runCleaner() {
 	}()
 }
 
-// Stop stops all processes of store and waits for them to exit.
+// Stop stops all processes of store and waits for them to exit,
+// then store DB to disc and exits
 func (s *GeddisStore) Stop() {
-	s.stopCh <- true
-
+	close(s.stopCh)
 	s.wg.Wait()
+	s.storeToDiskOnce()
 }
