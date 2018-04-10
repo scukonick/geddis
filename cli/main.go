@@ -118,7 +118,6 @@ func cliDelete(c *cli.Context) error {
 	url := c.String("url")
 	client := geddiclient.NewClient(url)
 
-	log.Println("deleting")
 	key := c.String("key")
 
 	client.Delete(key)
